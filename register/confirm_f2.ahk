@@ -1,5 +1,5 @@
 F2:: {       
-    Click 902, 562
+    Click 902, 553
         Sleep 500
 
     Click 890, 833

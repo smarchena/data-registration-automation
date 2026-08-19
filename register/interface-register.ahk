@@ -16,21 +16,21 @@
 
     txtFecha := miGui.AddEdit(
         "x20 y40 w130 h30",
-        "11/06/2025"
+        "13/08/2025"
     )
 
     miGui.AddText("x170 y15", "MES")
 
     txtMes := miGui.AddEdit(
         "x170 y40 w80 h30",
-        "DIC"
+        "FEB"
     )
 
     miGui.AddText("x270 y15", "AÑO")
 
     txtAnio := miGui.AddEdit(
         "x270 y40 w100 h30",
-        "2024"
+        "2025"
     )
 
 ; NOMBRES Y VALORES
@@ -407,7 +407,7 @@
             ; NOMBRE
                 EsperarSiPausado()    
                 Send nombre                    
-                Sleep 2000    
+                Sleep 1000   
                 Click 422, 513
                 Sleep 500            
             
@@ -463,22 +463,20 @@
             Send "{PgDn}"
             Sleep 500
 
-            Click 335, 364, 2
-            Sleep 1000
+            Click 503, 361
+            Sleep 500
 
-            Send "{Down}"
-            Sleep 200
-            Send "{Down}"
-            Sleep 200
+            Click 354, 404, 2
+            Sleep 1100            
 
             Send "{Enter}"
             Sleep 500
 
-            Click 597, 362, 2
+            Click 617, 410, 2
             Sleep 100
             Send "^a"
             Sleep 100
-            Send "30/06/2025"           
+            Send "30/08/2025"           
 
             lblEstado.Text :=
                 "Registro ejecutado: "
