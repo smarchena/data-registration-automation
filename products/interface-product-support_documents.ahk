@@ -1,43 +1,52 @@
+
 #Requires AutoHotkey v2.0
 #SingleInstance Force
 
 materiales := [
-    ["ACRI001", "120"],
-    ["CHATALUMINIO001", "4000"],
-    ["ARCHIVO001", "500"],
-    ["CARTON001", "180"],
-    ["CHATCHIERRO001", "450"],
-    ["PyC01", "530"],
-    ["PYC02", "95"],
-    ["PLASPL01", "200"],
-    ["PL02", "550"],
-    ["OTROSV01", "110"],
-    ["PASTA001", "550"],
-    ["PETACEITE001", "180"],
-    ["PETAMBAR001", "300"],
+    ["ACRI001", "150"],
+    ["CHATALUMINIO001", "4500"],
+    ["ARCHIVO001", "550"],
+    ["CARTON001", "200"],    
+    ["CHATCHIERRO001", "400"],
+    ["PyC01", "550"],
+    ["PYC02", "100"],
+    ["PLASPL01", "250"],
+    ["PL02", "600"],
+    ["OTV01", "150"],
+    ["PASTA001", "650"],
+    ["PETACEITE001", "200"],
+    ["PETAMBAR001", "250"],
     ["PETTRANSP001", "900"],
-    ["PETVERDE001", "180"],
-    ["PLASTBCO", "400"],
-    ["PLASTICO001", "400"],
-    ["PLEGA001", "150"],
-    ["PVC001", "250"],
-    ["SILLPL01", "1300"],
-    ["SOP031", "500"],
-    ["TAPPLAS01", "400"],
-    ["TETRAPACK001", "150"],
-    ["VIDAMBAR001", "130"],
-    ["VIDENVASE001", "130"]
+    ["PETVERDE001", "200"],
+    ["PLASTBCO", "450"],
+    ["PLASTICO001", "450"],
+    ["PLEGA001", "100"],
+    ["PVC001", "300"],
+    ["SOP031", "550"],
+    ["TAPPLAS01", "450"],
+    ["TETRAPACK001", "200"],
+    ["VIDAMBAR001", "150"],
+    ["VIDENVASE001", "150"]
 ]
+
+totalMateriales := materiales.Length
 
 cantidades := []
 detenerProceso := false
 procesoActivo := false
 
-ventana := Gui(, "Automatizador de materiales")
+ventana := Gui("+Resize", "Automatizador de materiales")
 ventana.SetFont("s10", "Segoe UI")
 
-ventana.AddText("x20 y20 w500 Center", "AUTOMATIZADOR DE MATERIALES")
-ventana.AddText("x20 y60 w500", "Pegue las cantidades, una por línea:")
+ventana.AddText(
+    "x20 y20 w500 Center",
+    "AUTOMATIZADOR DE MATERIALES"
+)
+
+ventana.AddText(
+    "x20 y60 w500",
+    "Pegue las cantidades, una por línea:"
+)
 
 campoCantidades := ventana.AddEdit(
     "x20 y85 w500 h250 Multi WantReturn VScroll"
@@ -45,7 +54,7 @@ campoCantidades := ventana.AddEdit(
 
 contador := ventana.AddText(
     "x20 y350 w500 Center",
-    "Registros detectados: 0 / 25"
+    "Registros detectados: 0 / " totalMateriales
 )
 
 botonValidar := ventana.AddButton(
@@ -69,11 +78,12 @@ estado := ventana.AddText(
 )
 
 barraProgreso := ventana.AddProgress(
-    "x20 y480 w500 h25 Range0-25",
+    "x20 y480 w500 h25 Range0-" totalMateriales,
     0
 )
 
 ventana.OnEvent("Close", CerrarPrograma)
+ventana.OnEvent("Size", RedimensionarVentana)
 
 botonValidar.OnEvent("Click", ValidarCantidades)
 botonIniciar.OnEvent("Click", IniciarProceso)
@@ -83,15 +93,20 @@ campoCantidades.OnEvent("Change", ContarRegistros)
 
 ventana.Show("w540 h530")
 
+
+; ============================================================
+; CONTAR REGISTROS
+; ============================================================
+
 ContarRegistros(*)
 {
-    global campoCantidades, contador
+    global campoCantidades, contador, totalMateriales
 
     texto := Trim(campoCantidades.Value)
 
     if (texto = "")
     {
-        contador.Text := "Registros detectados: 0 / 25"
+        contador.Text := "Registros detectados: 0 / " totalMateriales
         return
     }
 
@@ -104,13 +119,19 @@ ContarRegistros(*)
             registrosValidos++
     }
 
-    contador.Text := "Registros detectados: " registrosValidos " / 25"
+    contador.Text := "Registros detectados: " registrosValidos " / " totalMateriales
 }
+
+
+; ============================================================
+; VALIDAR CANTIDADES
+; ============================================================
 
 ValidarCantidades(*)
 {
     global campoCantidades, cantidades
     global contador, estado, botonIniciar
+    global totalMateriales
 
     texto := Trim(campoCantidades.Value)
 
@@ -135,10 +156,10 @@ ValidarCantidades(*)
             cantidadesTemporales.Push(valor)
     }
 
-    if (cantidadesTemporales.Length != 25)
+    if (cantidadesTemporales.Length != totalMateriales)
     {
         MsgBox(
-            "Se detectaron " cantidadesTemporales.Length " cantidades.`n`nDebes pegar exactamente 25 cantidades.",
+            "Se detectaron " cantidadesTemporales.Length " cantidades.`n`nDebes pegar exactamente " totalMateriales " cantidades.",
             "Cantidad incorrecta",
             "Icon!"
         )
@@ -170,16 +191,21 @@ ValidarCantidades(*)
 
     cantidades := cantidadesTemporales
 
-    contador.Text := "Registros detectados: 25 / 25"
+    contador.Text := "Registros detectados: " totalMateriales " / " totalMateriales
     estado.Text := "Estado: Cantidades validadas correctamente"
     botonIniciar.Enabled := true
 
     MsgBox(
-        "Las 25 cantidades son válidas.`n`nYa puedes presionar Iniciar.",
+        "Las " totalMateriales " cantidades son válidas.`n`nYa puedes presionar Iniciar.",
         "Validación correcta",
         "Iconi"
     )
 }
+
+
+; ============================================================
+; INICIAR PROCESO
+; ============================================================
 
 IniciarProceso(*)
 {
@@ -187,8 +213,9 @@ IniciarProceso(*)
     global campoCantidades, botonValidar
     global botonIniciar, botonDetener
     global estado, barraProgreso
+    global totalMateriales
 
-    if (cantidades.Length != 25)
+    if (cantidades.Length != totalMateriales)
     {
         MsgBox(
             "Primero debes validar las cantidades.",
@@ -228,32 +255,51 @@ IniciarProceso(*)
     EjecutarAutomatizacion()
 }
 
+
+; ============================================================
+; AUTOMATIZACIÓN
+; ============================================================
+
 EjecutarAutomatizacion()
 {
     global materiales, cantidades
     global detenerProceso, estado, barraProgreso
+    global totalMateriales
 
-    Loop 25
+    Loop totalMateriales
     {
         if (detenerProceso)
         {
-            FinalizarProceso("Proceso detenido en el producto " A_Index " de 25")
+            FinalizarProceso("Proceso detenido en el producto " A_Index " de " totalMateriales)
             return
         }
 
         indice := A_Index
 
-        estado.Text := "Estado: Procesando producto " indice " de 25"
+        estado.Text := "Estado: Procesando producto " indice " de " totalMateriales
+
+        if (indice = 10 || indice = totalMateriales)
+        {
+            estado.Text := "Estado: Bajando la página..."
+
+            Send "{PgDn}"
+            Sleep 200
+        }
 
         barraProgreso.Value := indice - 1
 
         Sleep 100
 
+
+        ; ====================================================
+        ; MATERIALES ESPECIALES: 6 AL 10
+        ; ====================================================
+
         if (indice >= 6 && indice <= 10)
         {
             SendText materiales[indice][1]
 
-            if !EsperarConDetencion(1000)
+            if !EsperarConDetencion(1500)
                 return
 
             Send "{Tab}"
@@ -278,14 +324,29 @@ EjecutarAutomatizacion()
 
             SendText materiales[indice][2]
 
-            if !EsperarConDetencion(300)
-                return
+            ; OTROSV01 necesita un poco más de tiempo
+            if (indice = 10)
+            {
+                if !EsperarConDetencion(500)
+                    return
+            }
+            else
+            {
+                if !EsperarConDetencion(300)
+                    return
+            }
         }
+
+
+        ; ====================================================
+        ; RESTO DE MATERIALES
+        ; ====================================================
+
         else
         {
             SendText materiales[indice][1]
 
-            if !EsperarConDetencion(1000)
+            if !EsperarConDetencion(1500)
                 return
 
             Loop 5
@@ -315,37 +376,55 @@ EjecutarAutomatizacion()
                 return
         }
 
+
+        ; ====================================================
+        ; AVANZAR AL SIGUIENTE PRODUCTO
+        ; ====================================================
+
+        ; Después de OTROSV01 damos tiempo adicional
+        ; antes de comenzar los Tabs finales.
+        if (indice = 10)
+        {
+            if !EsperarConDetencion(500)
+                return
+        }
+
         Loop 5
         {
             Send "{Tab}"
 
-            if !EsperarConDetencion(100)
+            if !EsperarConDetencion(150)
                 return
         }
 
         barraProgreso.Value := indice
 
-        if (indice = 10 || indice = 24)
-        {
-            estado.Text := "Estado: Bajando la página"
 
-            Send "{PgDn}"
+        ; ====================================================
+        ; IMPORTANTE:
+        ; NO HAY PAGEDOWN POR AHORA
+        ;
+        ; Lo quitamos temporalmente para comprobar
+        ; si el problema está realmente relacionado
+        ; con PgDn.
+        ; ====================================================
 
-            if !EsperarConDetencion(100)
-                return
-        }
-
-        if (indice < 25)
+        if (indice < totalMateriales)
         {
             estado.Text := "Estado: Producto " indice " completado. Preparando el siguiente..."
 
-            if !EsperarConDetencion(100)
+            if !EsperarConDetencion(300)
                 return
         }
     }
 
     FinalizarProceso("Proceso terminado correctamente")
 }
+
+
+; ============================================================
+; ESPERAR PERMITIENDO DETENER
+; ============================================================
 
 EsperarConDetencion(tiempo)
 {
@@ -371,6 +450,11 @@ EsperarConDetencion(tiempo)
     return true
 }
 
+
+; ============================================================
+; SOLICITAR DETENCIÓN
+; ============================================================
+
 SolicitarDetencion(*)
 {
     global detenerProceso, estado
@@ -379,6 +463,11 @@ SolicitarDetencion(*)
 
     estado.Text := "Estado: Deteniendo proceso..."
 }
+
+
+; ============================================================
+; FINALIZAR PROCESO
+; ============================================================
 
 FinalizarProceso(mensaje)
 {
@@ -392,19 +481,94 @@ FinalizarProceso(mensaje)
 
     campoCantidades.Enabled := true
     botonValidar.Enabled := true
+    botonIniciar.Enabled := true
     botonDetener.Enabled := false
 
     estado.Text := "Estado: " mensaje
 
     if (mensaje = "Proceso terminado correctamente")
-    {
+    {     
         MsgBox(
-            "Los 25 productos fueron procesados.",
+            "Los materiales fueron procesados correctamente.",
             "Proceso terminado",
             "Iconi"
         )
     }
 }
+
+
+; ============================================================
+; REDIMENSIONAR VENTANA
+; ============================================================
+
+RedimensionarVentana(guiObj, minMax, width, height)
+{
+    global campoCantidades, contador
+    global botonValidar, botonIniciar, botonDetener
+    global estado, barraProgreso
+
+    if (minMax = -1)
+        return
+
+    nuevoAncho := width - 40
+
+    if (nuevoAncho < 300)
+        nuevoAncho := 300
+
+    campoCantidades.Move(
+        20,
+        85,
+        nuevoAncho,
+        250
+    )
+
+    contador.Move(
+        20,
+        350,
+        nuevoAncho
+    )
+
+    anchoBoton := (nuevoAncho - 50) / 3
+
+    botonValidar.Move(
+        20,
+        390,
+        anchoBoton,
+        40
+    )
+
+    botonIniciar.Move(
+        25 + anchoBoton,
+        390,
+        anchoBoton,
+        40
+    )
+
+    botonDetener.Move(
+        30 + (anchoBoton * 2),
+        390,
+        anchoBoton,
+        40
+    )
+
+    estado.Move(
+        20,
+        450,
+        nuevoAncho
+    )
+
+    barraProgreso.Move(
+        20,
+        480,
+        nuevoAncho,
+        25
+    )
+}
+
+
+; ============================================================
+; CERRAR PROGRAMA
+; ============================================================
 
 CerrarPrograma(*)
 {
@@ -424,3 +588,4 @@ CerrarPrograma(*)
 
     ExitApp
 }
+

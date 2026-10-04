@@ -1,20 +1,20 @@
 F2:: { 
       
-    Click 1407, 212
+    Click 885, 207
     Sleep 3500
 
-    Click -698, 548
+    Click 800, 1477
         Sleep 500
 
-    Click 2263, 185, 2
+    Click 246, -742, 2
         Sleep 500
 
-    Click 1305, 160
+    Click 789, 155
         Sleep 500
 
-    Click 776, 371
+    Click 302, 364
         Sleep 2500
 
-    Click 825, 210, 2
+    Click 579, 193, 2
         Sleep 100    
 }
